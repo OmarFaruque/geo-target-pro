@@ -1,0 +1,201 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: #efefef;
+  border: 1px solid #d5d5d5;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #555;
+}
+
+.steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.step {
+  border: 1px dashed #9a9a9a;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.activeStep {
+  border: 2px solid #212121;
+  font-weight: 600;
+}
+
+.templateGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.templateCard {
+  border: 1px solid #bfbfbf;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.templatePreview {
+  display: block;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.templateSelected {
+  border: 2px solid #202020;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 8px;
+  background: #fff;
+}
+
+.card label:last-of-type {
+  grid-column: span 2;
+}
+
+.card input,
+.panel input {
+  width: calc(100% - 18px);
+  margin-top: 4px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.addBtn,
+.deleteBtn {
+  border: 0;
+  background: #1f1f1f;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.deleteBtn {
+  grid-column: span 2;
+  background: #822727;
+}
+
+.previewBanner {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 14px;
+}
+
+.previewMessage {
+  text-align: center;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.previewCta {
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.arrowBtn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 28px;
+}
+
+.countryRules {
+  display: grid;
+  gap: 10px;
+}
+
+.countryCard {
+  border: 1px solid #cfcfcf;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px;
+}
+
+.countryCard summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.productList {
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkboxRow input {
+  width: auto;
+  margin-top: 0;
+}
+
+.success {
+  color: #146d14;
+  font-weight: 600;
+}
+
+.error {
+  color: #9f1f1f;
+  font-weight: 600;
+}
+
+@media (max-width: 1080px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
