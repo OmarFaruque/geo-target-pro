@@ -1,16 +1,3 @@
-.layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.panel {
-  background: #efefef;
-  border: 1px solid #d5d5d5;
-  border-radius: 16px;
-  padding: 16px;
-}
-
 .headerRow {
   display: flex;
   align-items: center;
@@ -25,31 +12,127 @@
 
 .subtitle {
   margin: 4px 0 0;
-  color: #555;
+  color: #5b5b5b;
 }
 
-.steps {
-  display: flex;
+.topTabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-.step {
-  border: 1px dashed #9a9a9a;
+.tabWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topTab {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #cfcfcf;
+  background: #f4f4f4;
   border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 13px;
+  padding: 10px 18px;
+  display: grid;
+  cursor: pointer;
 }
 
-.activeStep {
-  border: 2px solid #212121;
-  font-weight: 600;
+.topTab span {
+  color: #545454;
+}
+
+.topTabActive {
+  border: 2px solid #262626;
+  background: #fff;
+}
+
+.tabArrow {
+  color: #6d6d6d;
+  font-size: 20px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+}
+
+.fulllayout{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+
+.leftPanel,
+.rightPanel {
+  background: #ececec;
+  border: 1px solid #d7d7d7;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.card,
+.previewCard {
+  border: 1px solid #cfcfcf;
+  border-radius: 12px;
+  background: #f7f7f7;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.stack {
+  display: grid;
+  gap: 8px;
+}
+.mt-10{margin-top: 10px;}
+.d-block{display: block;}
+.card input,
+.leftPanel input {
+  width: calc(100% - 16px);
+  margin-top: 0px;
+  border: 1px solid #bdbdbd;
+  border-radius: 8px;
+  padding: 8px;
+}
+.leftPanel label span{margin-left: 5px;}
+.leftPanel label{
+  margin-bottom: 5px;
+  display: block;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.checkboxRow input {
+  width: auto;
+  margin: 0;
+}
+
+.addBtn,
+.deleteBtn {
+  border: 0;
+  background: #1f1f1f;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.deleteBtn {
+  margin-top: 8px;
+  background: #932a2a;
 }
 
 .templateGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .templateCard {
@@ -65,57 +148,22 @@
 
 .templatePreview {
   display: block;
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 7px;
+  padding: 8px;
+  font-size: 13px;
   font-weight: 700;
-  text-align: center;
 }
 
 .templateSelected {
   border: 2px solid #202020;
 }
 
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.card {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 8px;
-  background: #fff;
-}
-
-.card label:last-of-type {
-  grid-column: span 2;
-}
-
-.card input,
-.panel input {
-  width: calc(100% - 18px);
-  margin-top: 4px;
-  border: 1px solid #bbb;
-  border-radius: 8px;
-  padding: 8px;
-}
-
-.addBtn,
-.deleteBtn {
-  border: 0;
-  background: #1f1f1f;
-  color: #fff;
-  border-radius: 8px;
-  padding: 8px 10px;
-}
-
-.deleteBtn {
-  grid-column: span 2;
-  background: #822727;
+.previewShell {
+  border: 1px solid #cdcdcd;
+  border-radius: 12px;
+  background: #f8f8f8;
+  padding: 12px;
+  margin-bottom: 10px;
 }
 
 .previewBanner {
@@ -123,20 +171,20 @@
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 10px;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px;
-  margin-bottom: 14px;
 }
 
 .previewMessage {
   text-align: center;
   font-weight: 700;
-  font-size: 24px;
+  font-size: 34px;
+  line-height: 1.1;
 }
 
 .previewCta {
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 7px;
   padding: 8px 12px;
   font-weight: 600;
 }
@@ -145,12 +193,12 @@
   border: 0;
   background: transparent;
   color: inherit;
-  font-size: 28px;
+  font-size: 34px;
 }
 
 .countryRules {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .countryCard {
@@ -169,33 +217,45 @@
   margin-top: 8px;
   display: grid;
   gap: 6px;
-  max-height: 220px;
+  max-height: 200px;
   overflow: auto;
 }
 
-.checkboxRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.promoMock {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
-.checkboxRow input {
-  width: auto;
-  margin-top: 0;
+.promoMock p {
+  margin: 4px 0 0;
+  color: #555;
 }
 
 .success {
-  color: #146d14;
+  color: #1c711c;
   font-weight: 600;
 }
 
 .error {
-  color: #9f1f1f;
+  color: #9a2222;
   font-weight: 600;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1200px) {
+  .topTabs {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .previewMessage {
+    font-size: 24px;
   }
 }

@@ -22,9 +22,20 @@ type BannerConfig = {
   selectedTemplateId: string;
   autoRotateMs: number;
   announcements: AnnouncementItem[];
+  pageTargets: string[];
+  positions: string[];
 };
 
 type ProductRules = Record<string, string[]>;
+
+type FlowTabId = "placement" | "content" | "design" | "products";
+
+const FLOW_TABS: Array<{ id: FlowTabId; title: string; subtitle: string }> = [
+  { id: "placement", title: "Placement", subtitle: "Collections" },
+  { id: "content", title: "Content", subtitle: "Selecting" },
+  { id: "design", title: "Design", subtitle: "Customize style" },
+  { id: "products", title: "Products", subtitle: "Country rules" },
+];
 
 const COUNTRY_OPTIONS = [
   { code: "US", name: "United States" },
@@ -39,39 +50,70 @@ const COUNTRY_OPTIONS = [
 
 const TEMPLATES = [
   {
-    id: "dark-sale",
-    name: "Dark sale",
-    background: "linear-gradient(90deg, #2f0505 0%, #4a0707 100%)",
+    id: "hero-maroon",
+    name: "Hero Maroon",
+    background: "linear-gradient(90deg, #350000 0%, #4d0101 100%)",
     textColor: "#ffffff",
-    ctaBg: "#f16363",
+    ctaBg: "#f96565",
     ctaText: "#ffffff",
   },
   {
-    id: "sunset",
-    name: "Sunset",
-    background: "linear-gradient(90deg, #e85c5c 0%, #ff8a00 100%)",
+    id: "sunrise",
+    name: "Sunrise",
+    background: "linear-gradient(90deg, #ea6058 0%, #ff8b00 100%)",
     textColor: "#ffffff",
-    ctaBg: "#111111",
+    ctaBg: "#121212",
     ctaText: "#ffffff",
   },
   {
-    id: "night",
-    name: "Night",
-    background: "#220000",
+    id: "platinum",
+    name: "Platinum",
+    background: "linear-gradient(90deg, #f7f7f7 0%, #ececec 100%)",
+    textColor: "#232323",
+    ctaBg: "#232323",
+    ctaText: "#ffffff",
+  },
+  {
+    id: "ocean-blue",
+    name: "Ocean Blue",
+    background: "linear-gradient(90deg, #0b3a61 0%, #1169b1 100%)",
     textColor: "#ffffff",
     ctaBg: "#ffffff",
-    ctaText: "#220000",
+    ctaText: "#0b3a61",
   },
   {
-    id: "minimal",
-    name: "Minimal",
-    background: "#f4f4f4",
-    textColor: "#1f1f1f",
-    ctaBg: "#1f1f1f",
+    id: "violet-night",
+    name: "Violet Night",
+    background: "linear-gradient(90deg, #2d0d46 0%, #5e1f89 100%)",
+    textColor: "#ffffff",
+    ctaBg: "#f2b8ff",
+    ctaText: "#2d0d46",
+  },
+  {
+    id: "mint-fresh",
+    name: "Mint Fresh",
+    background: "linear-gradient(90deg, #1f5f4f 0%, #2d8f77 100%)",
+    textColor: "#ffffff",
+    ctaBg: "#d5fff5",
+    ctaText: "#1f5f4f",
+  },
+  {
+    id: "amber",
+    name: "Amber",
+    background: "linear-gradient(90deg, #7a4b00 0%, #c27600 100%)",
+    textColor: "#fff4e5",
+    ctaBg: "#fff4e5",
+    ctaText: "#7a4b00",
+  },
+  {
+    id: "charcoal",
+    name: "Charcoal",
+    background: "linear-gradient(90deg, #2b2b2b 0%, #3d3d3d 100%)",
+    textColor: "#ffffff",
+    ctaBg: "#ff3f8e",
     ctaText: "#ffffff",
   },
 ];
-
 
 const DEFAULT_CONFIG: BannerConfig = {
   selectedTemplateId: TEMPLATES[0].id,
@@ -89,6 +131,8 @@ const DEFAULT_CONFIG: BannerConfig = {
       ctaUrl: "/collections/all",
     },
   ],
+  pageTargets: ["every-page"],
+  positions: ["top-page"],
 };
 
 
@@ -125,7 +169,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     try {
       if (shop?.bannerConfig?.value) {
-        bannerConfig = JSON.parse(shop.bannerConfig.value);
+          bannerConfig = { ...DEFAULT_CONFIG, ...JSON.parse(shop.bannerConfig.value) };
       }
     } catch {
       bannerConfig = DEFAULT_CONFIG;
@@ -226,6 +270,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function Index() {
   const loaderData = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const [activeTab, setActiveTab] = useState<FlowTabId>("placement");
 
   const [config, setConfig] = useState<BannerConfig>(loaderData.bannerConfig);
   const [rules, setRules] = useState<ProductRules>(loaderData.productRules);
@@ -279,232 +324,309 @@ export default function Index() {
     });
   };
 
+
+  const toggleFromList = (field: "pageTargets" | "positions", value: string) => {
+    setConfig((previous) => {
+      const list = new Set(previous[field]);
+      if (list.has(value)) {
+        list.delete(value);
+      } else {
+        list.add(value);
+      }
+      return { ...previous, [field]: Array.from(list) };
+    });
+  };
+
   return (
     
-
     <s-page heading="GeoTarget Promotion Studio">
       <s-section>
         <div className={styles.headerRow}>
           <div>
             <h2 className={styles.title}>Announcement campaign for {loaderData.shopName}</h2>
-            <p className={styles.subtitle}>
-              Build rotating banners with template styles and country-based product restrictions.
-            </p>
+            <p className={styles.subtitle}> Build rotating banners with template styles and country-based product restrictions.</p>
           </div>
           <s-button variant="primary" onClick={saveSettings}>
             Save campaign
           </s-button>
         </div>
       </s-section>
-
-      <div className={styles.layout}>
-        <section className={styles.panel}>
-          <h3>Flow</h3>
-          <div className={styles.steps}>
-            <span className={`${styles.step} ${styles.activeStep}`}>1. Placement</span>
-            <span className={styles.step}>2. Content</span>
-            <span className={styles.step}>3. Design</span>
+      <section className={styles.topTabs}>
+        {FLOW_TABS.map((tab, index) => (
+          <div key={tab.id} className={styles.tabWrap}>
+            <button
+              type="button"
+              className={`${styles.topTab} ${tab.id === activeTab ? styles.topTabActive : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            > <strong>{tab.title}</strong>
+              <span>{tab.subtitle}</span>
+            </button>
+            {index < FLOW_TABS.length - 1 && <span className={styles.tabArrow}>→</span>}
           </div>
+        ))}
+      </section>
 
-          <h3>Choose template</h3>
-          <div className={styles.templateGrid}>
-            {TEMPLATES.map((template) => (
-              <button
-                key={template.id}
-                className={`${styles.templateCard} ${
-                  template.id === config.selectedTemplateId ? styles.templateSelected : ""
-                }`}
-                type="button"
-                onClick={() => setConfig((previous) => ({ ...previous, selectedTemplateId: template.id }))}
-              >
-                <span
-                  className={styles.templatePreview}
-                  style={{
-                    background: template.background,
-                    color: template.textColor,
-                  }}
-                >
-                  🔥 20% off all products!
-                </span>
-                <span>{template.name}</span>
-              </button>
-            ))}
-          </div>
-
-          <h3>Banner slider content</h3>
-          <div className={styles.stack}>
-            {config.announcements.map((announcement, index) => (
-              <div key={announcement.id} className={styles.card}>
-                <label>
-                  Message
-                  <input
-                    value={announcement.message}
-                    onChange={(event) => {
-                      const announcements = [...config.announcements];
-                      announcements[index] = {
-                        ...announcement,
-                        message: event.target.value,
-                      };
-                      setConfig((previous) => ({ ...previous, announcements }));
-                    }}
-                  />
-                </label>
-                <label>
-                  CTA text
-                  <input
-                    value={announcement.ctaText}
-                    onChange={(event) => {
-                      const announcements = [...config.announcements];
-                      announcements[index] = {
-                        ...announcement,
-                        ctaText: event.target.value,
-                      };
-                      setConfig((previous) => ({ ...previous, announcements }));
-                    }}
-                  />
-                </label>
-                <label>
-                  CTA URL
-                  <input
-                    value={announcement.ctaUrl}
-                    onChange={(event) => {
-                      const announcements = [...config.announcements];
-                      announcements[index] = {
-                        ...announcement,
-                        ctaUrl: event.target.value,
-                      };
-                      setConfig((previous) => ({ ...previous, announcements }));
-                    }}
-                  />
-                </label>
-                <button
-                  type="button"
-                  className={styles.deleteBtn}
-                  disabled={config.announcements.length === 1}
-                  onClick={() => {
-                    setConfig((previous) => ({
-                      ...previous,
-                      announcements: previous.announcements.filter((item) => item.id !== announcement.id),
-                    }));
-                  }}
-                >
-                  Remove
-                </button>
+      <div className={`${activeTab !== 'products' ? styles.layout : styles.fulllayout}`}>
+        <section className={styles.leftPanel}>
+          {activeTab === "placement" && (
+            <>
+              <h3>Announcement Bar Position</h3>
+              <div className={styles.card}>
+                <h4>Page to display</h4>
+                {[
+                  ["every-page", "Every page"],
+                  ["product-page", "Product page"],
+                  ["home-only", "Home page only"],
+                  ["collection-page", "Collection page"],
+                  ["manual-position", "Manual position"],
+                ].map(([value, label]) => (
+                  <label key={value} className={styles.checkboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={config.pageTargets.includes(value)}
+                      onChange={() => toggleFromList("pageTargets", value)}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
               </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            className={styles.addBtn}
-            onClick={() => {
-              setConfig((previous) => ({
-                ...previous,
-                announcements: [
-                  ...previous.announcements,
-                  {
-                    id: crypto.randomUUID(),
-                    message: "✨ New promotion message",
-                    ctaText: "Explore",
-                    ctaUrl: "/collections/all",
-                  },
-                ],
-              }));
-            }}
-          > + Add slide
-          </button>
 
-       <label>
-            Auto-rotate (milliseconds)
-            <input
-              type="number"
-              min={1000}
-              step={250}
-              value={config.autoRotateMs}
-              onChange={(event) =>
-                setConfig((previous) => ({
-                  ...previous,
-                  autoRotateMs: Number(event.target.value) || 4500,
-                }))
-              }
-            />
-          </label>
+              <div className={styles.card}>
+                <h4>Show announcement bar on</h4>
+                {[
+                  ["top-page", "Top of page"],
+                  ["bottom-page", "Bottom of page"],
+                  ["above-buy", "Above buy button"],
+                  ["below-buy", "Below buy button"],
+                  ["sticky", "Sticky on top/bottom"],
+                ].map(([value, label]) => (
+                  <label key={value} className={styles.checkboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={config.positions.includes(value)}
+                      onChange={() => toggleFromList("positions", value)}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </>
+          )}          
+
+{activeTab === "content" && (
+            <>
+              <h3>Announcement content</h3>
+              <div className={styles.stack}>
+                {config.announcements.map((announcement, index) => (
+                  <div key={announcement.id} className={styles.card}>
+                    <label>
+                      Message
+                      <input
+                        value={announcement.message}
+                        onChange={(event) => {
+                          const announcements = [...config.announcements];
+                          announcements[index] = { ...announcement, message: event.target.value };
+                          setConfig((previous) => ({ ...previous, announcements }));
+                        }}
+                      />
+                    </label>
+                    <label>
+                      CTA text
+                      <input
+                        value={announcement.ctaText}
+                        onChange={(event) => {
+                          const announcements = [...config.announcements];
+                          announcements[index] = { ...announcement, ctaText: event.target.value };
+                          setConfig((previous) => ({ ...previous, announcements }));
+                        }}
+                      />
+                    </label>
+                    <label>
+                      CTA URL
+                      <input
+                        value={announcement.ctaUrl}
+                        onChange={(event) => {
+                          const announcements = [...config.announcements];
+                          announcements[index] = { ...announcement, ctaUrl: event.target.value };
+                          setConfig((previous) => ({ ...previous, announcements }));
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className={styles.deleteBtn}
+                      disabled={config.announcements.length === 1}
+                      onClick={() => {
+                        setConfig((previous) => ({
+                          ...previous,
+                          announcements: previous.announcements.filter((item) => item.id !== announcement.id),
+                        }));
+                      }}
+                    >
+                      Remove slide
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className={styles.addBtn}
+                onClick={() => {
+                  setConfig((previous) => ({
+                    ...previous,
+                    announcements: [
+                      ...previous.announcements,
+                      {
+                        id: crypto.randomUUID(),
+                        message: "✨ New promotion message",
+                        ctaText: "Explore",
+                        ctaUrl: "/collections/all",
+                      },
+                    ],
+                  }));
+                }}
+              > + Add contents
+              </button>
+              <label className="mt-10 d-block">
+                Scrolling speed (ms)
+                <input
+                  type="number"
+                  min={1000}
+                  step={250}
+                  value={config.autoRotateMs}
+                  onChange={(event) =>
+                    setConfig((previous) => ({ ...previous, autoRotateMs: Number(event.target.value) || 4500 }))
+                  }
+                />
+              </label>
+            </>
+          )}
+
+
+           {activeTab === "design" && (
+            <>
+              <h3>Select template</h3>
+              <p className={styles.subtitle}>Choose from 8 styles. All template colors and CTA styles are unique.</p>
+              <div className={styles.templateGrid}>
+                {TEMPLATES.map((template) => (
+                  <button
+                    key={template.id}
+                    className={`${styles.templateCard} ${
+                      template.id === config.selectedTemplateId ? styles.templateSelected : ""
+                    }`}
+                    type="button"
+                    onClick={() => setConfig((previous) => ({ ...previous, selectedTemplateId: template.id }))}
+                  >
+                    <span
+                      className={styles.templatePreview}
+                      style={{ background: template.background, color: template.textColor }}
+                    >
+                      🔥 20% off all products!
+                    </span>
+                    <span>{template.name}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {activeTab === "products" && (
+            <>
+              <h3>Country product settings</h3>
+              <p className={styles.subtitle}>Choose which products to disable in each country.</p>
+              <div className={styles.countryRules}>
+                {sortedCountriesWithRules.map((country) => (
+                  <details className={styles.countryCard} key={country.code}>
+                    <summary>
+                      {country.name} ({country.code}) — {country.productIds.length} disabled
+                    </summary>
+                    <div className={styles.productList}>
+                      {loaderData.products.map((product) => {
+                        const isChecked = country.productIds.includes(product.id);
+                        return (
+                          <label key={`${country.code}-${product.id}`} className={styles.checkboxRow}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(event) =>
+                                updateCountryRule(country.code, product.id, event.currentTarget.checked)
+                              }
+                            />
+                            <span>{product.title}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </>
+          )}
         </section>
 
-        <section className={styles.panel}>
-          <h3>Live preview</h3>
-          <div
-            className={styles.previewBanner}
-            style={{
-              background: selectedTemplate.background,
-              color: selectedTemplate.textColor,
-            }}
-          >
-            <button
-              type="button"
-              className={styles.arrowBtn}
-              onClick={() =>
-                setActiveSlide((previous) =>
-                  (previous - 1 + config.announcements.length) % config.announcements.length,
-                )
-              }
-              aria-label="Previous slide"
-            >
-              ‹
-            </button>
-            <span className={styles.previewMessage}>
-              {config.announcements[activeSlide]?.message}
-            </span>
-            <a
-              href={config.announcements[activeSlide]?.ctaUrl}
-              className={styles.previewCta}
-              style={{
-                background: selectedTemplate.ctaBg,
-                color: selectedTemplate.ctaText,
-              }}
-            >
-               {config.announcements[activeSlide]?.ctaText}
-            </a>
-            <button
-              type="button"
-              className={styles.arrowBtn}
-              onClick={() => setActiveSlide((previous) => (previous + 1) % config.announcements.length)}
-              aria-label="Next slide"
-            >
-              ›
-            </button>
-          </div>
 
-          <h3>Disable products by country</h3>
-          <p className={styles.subtitle}>When a shopper is in a selected country, checked products are hidden.</p>
-          <div className={styles.countryRules}>
-            {sortedCountriesWithRules.map((country) => (
-              <details className={styles.countryCard} key={country.code}>
-                <summary>
-                  {country.name} ({country.code}) — {country.productIds.length} disabled
-                </summary>
-                <div className={styles.productList}>
-                  {loaderData.products.map((product) => {
-                    const isChecked = country.productIds.includes(product.id);
-                    return (
-                      <label key={`${country.code}-${product.id}`} className={styles.checkboxRow}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(event) =>
-                            updateCountryRule(country.code, product.id, event.currentTarget.checked)
-                          }
-                        />
-                        <span>{product.title}</span>
-                      </label>
-                    );
-                  })}
+
+        {activeTab !== "products" && (
+          <>
+            <section className={styles.rightPanel}>
+              <h3>Live preview</h3>
+              <div className={styles.previewShell}>
+                <div
+                  className={styles.previewBanner}
+                  style={{ background: selectedTemplate.background, color: selectedTemplate.textColor }}
+                > <button
+                    type="button"
+                    className={styles.arrowBtn}
+                    onClick={() =>
+                      setActiveSlide((previous) =>
+                        (previous - 1 + config.announcements.length) % config.announcements.length,
+                      )
+                    }
+                    aria-label="Previous slide"
+                  >
+                    ‹
+                  </button>
+                  <span className={styles.previewMessage}>{config.announcements[activeSlide]?.message}</span>
+                  <a
+                    href={config.announcements[activeSlide]?.ctaUrl}
+                    className={styles.previewCta}
+                    style={{ background: selectedTemplate.ctaBg, color: selectedTemplate.ctaText }}
+                  >
+                    {config.announcements[activeSlide]?.ctaText}
+                  </a>
+                  <button
+                    type="button"
+                    className={styles.arrowBtn}
+                    onClick={() => setActiveSlide((previous) => (previous + 1) % config.announcements.length)}
+                    aria-label="Next slide"
+                  >
+                    ›
+                  </button>
                 </div>
-              </details>
-            ))}
-          </div>
-          {fetcher.data?.ok && <p className={styles.success}>Saved successfully.</p>}
-          {fetcher.data?.error && <p className={styles.error}>{fetcher.data.error}</p>}
-        </section>
+              </div>
+
+              <div className={styles.previewCard}>
+                <h4>Promotion card preview</h4>
+                <p className={styles.subtitle}>Use this area for trusted badges, bundles, or coupon blocks below the main bar.</p>
+                <div className={styles.promoMock}>
+                  <div>
+                    <strong>Standard price</strong>
+                    <p>$35.00 → $32.99</p>
+                  </div>
+                  <div>
+                    <strong>Save 10%</strong>
+                    <p>$70.00 → $59.38</p>
+                  </div>
+                </div>
+              </div>
+
+              {fetcher.data?.ok && <p className={styles.success}>Saved successfully.</p>}
+              {fetcher.data?.error && <p className={styles.error}>{fetcher.data.error}</p>}
+            </section>
+                  
+          </>
+        )}
       </div>
     </s-page>
   );
