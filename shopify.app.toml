@@ -2,7 +2,7 @@
 
 client_id = "cd612c6f405fc1c4c1b1286e2d0da584"
 name = "GeoTargetPro"
-application_url = "https://probe-requiring-desired-knock.trycloudflare.com"
+application_url = "https://geo-target-pro.vercel.app"
 embedded = true
 
 [build]
@@ -18,12 +18,12 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-	"https://probe-requiring-desired-knock.trycloudflare.com/auth/callback",
-	"https://probe-requiring-desired-knock.trycloudflare.com/auth/shopify/callback",
-	"https://probe-requiring-desired-knock.trycloudflare.com/api/auth/callback"
+	"https://geo-target-pro.vercel.app/auth/callback",
+	"https://geo-target-pro.vercel.app/auth/shopify/callback",
+	"https://geo-target-pro.vercel.app/api/auth/callback"
 ]
 
 [app_proxy]
-url = "https://probe-requiring-desired-knock.trycloudflare.com/public/geotarget"
+url = "https://geo-target-pro.vercel.app/public/geotarget"
 subpath = "geotarget-pro"
 prefix = "apps"
