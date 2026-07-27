@@ -22,7 +22,6 @@
     });
     document.documentElement.setAttribute("data-geotarget-pro", "loaded");
 
-
     const localhostEndpoint = new URL("https://geo-target-pro.vercel.app/public/geotarget");
     localhostEndpoint.searchParams.set("shop", shopDomain);
     if (country) localhostEndpoint.searchParams.set("country", country);
