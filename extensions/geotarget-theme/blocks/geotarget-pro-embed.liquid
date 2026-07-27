@@ -1,0 +1,183 @@
+<script>
+  (() => {
+    const DEBUG = {{ block.settings.debug_mode | json }};
+    const log = (...args) => {
+      if (!DEBUG) return;
+      console.log("[GeoTarget Pro]", ...args);
+    };
+
+    const country = (window.Shopify?.country || (window.Shopify?.locale || "").split("-")[1] || "").toUpperCase();
+    const shopDomain = window.Shopify?.shop || {{ shop.permanent_domain | json }};
+    
+
+    const proxyEndpoint = new URL("/apps/geotarget-pro", window.location.origin);
+    proxyEndpoint.searchParams.set("shop", shopDomain);
+    if (country) proxyEndpoint.searchParams.set("country", country);
+
+    console.log("[GeoTarget Pro] embed booted", {
+      debug: DEBUG,
+      shopDomain,
+      country,
+      proxyEndpoint: proxyEndpoint.toString(),
+    });
+    document.documentElement.setAttribute("data-geotarget-pro", "loaded");
+
+    const localhostEndpoint = new URL("https://geo-target-pro.vercel.app/public/geotarget");
+    localhostEndpoint.searchParams.set("shop", shopDomain);
+    if (country) localhostEndpoint.searchParams.set("country", country);
+
+    const fetchJson = async (url) => {
+      const response = await fetch(url, { credentials: "omit" });
+      const contentType = response.headers.get("content-type") || "";
+
+      console.log("[GeoTarget Pro] fetch response", {
+        url,
+        status: response.status,
+        contentType,
+      });
+
+      if (!response.ok) {
+        throw new Error("Request failed with status " + response.status + " for " + url);
+      }
+
+      if (!contentType.includes("application/json")) {
+        throw new Error("Non-JSON response for " + url + ". This usually means storefront password page or proxy misconfiguration.");
+      }
+
+      return response.json();
+    };
+
+    const renderPayload = (payload) => {
+      if (!payload) {
+        log("No payload returned");
+        return;
+      }
+
+      console.log("[GeoTarget Pro] renderPayload", payload);
+
+      const announcements = payload.banner?.announcements || [];
+      const style = payload.banner?.style || {};
+      const positions = payload.banner?.positions || [];
+
+      const shouldRenderTop = positions.includes("top-page");
+      const shouldRenderBottom = positions.includes("bottom-page");
+
+      if (announcements.length > 0 && (shouldRenderTop || shouldRenderBottom)) {
+        const host = document.createElement("div");
+        host.id = "geo-target-pro-banner";
+        host.style.cssText =
+          "position:relative;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;z-index:9998;font-family:inherit;" +
+          "background:" + (style.background || "#111") + ";color:" + (style.textColor || "#fff") + ";";
+
+        const message = document.createElement("span");
+        message.style.fontSize = "14px";
+        message.style.fontWeight = "600";
+
+        const cta = document.createElement("a");
+        cta.style.cssText =
+          "padding:6px 12px;border-radius:999px;text-decoration:none;font-size:12px;font-weight:700;" +
+          "background:" + (style.ctaBg || "#fff") + ";color:" + (style.ctaText || "#111") + ";";
+
+        const applySlide = (index) => {
+          const slide = announcements[index % announcements.length];
+          message.textContent = slide?.message || "";
+          cta.textContent = slide?.ctaText || "Shop now";
+          cta.href = slide?.ctaUrl || "/collections/all";
+        };
+
+        applySlide(0);
+        host.appendChild(message);
+        host.appendChild(cta);
+
+        if (shouldRenderTop) {
+          const headerHost =
+            document.querySelector("#shopify-section-header") ||
+            document.querySelector("header") ||
+            document.body.firstChild;
+
+          if (headerHost?.parentNode) {
+            headerHost.parentNode.insertBefore(host, headerHost);
+          } else {
+            document.body.insertBefore(host, document.body.firstChild);
+          }
+        } else {
+          document.body.appendChild(host);
+        }
+
+        if (announcements.length > 1) {
+          let active = 0;
+          const intervalMs = Math.max(1000, Number(payload.banner?.autoRotateMs || 4500));
+          window.setInterval(() => {
+            active += 1;
+            applySlide(active);
+          }, intervalMs);
+        }
+      } else {
+        log("Banner not rendered", {
+          hasAnnouncements: announcements.length > 0,
+          positions,
+        });
+      }
+
+      const hiddenHandles = payload.hiddenProducts?.handles || [];
+      if (hiddenHandles.length === 0) return;
+
+      const selectors = hiddenHandles.map((handle) => 'a[href*="/products/' + handle + '"]').join(",");
+      if (!selectors) return;
+
+      const hideProducts = () => {
+        document.querySelectorAll(selectors).forEach((anchor) => {
+          const card = anchor.closest("li,article,div,product-card,.card-wrapper,.grid__item");
+          if (card) {
+            card.style.display = "none";
+            return;
+          }
+          anchor.style.display = "none";
+        });
+      };
+
+      hideProducts();
+      const observer = new MutationObserver(hideProducts);
+      observer.observe(document.body, { childList: true, subtree: true });
+    };
+
+    fetchJson(proxyEndpoint.toString())
+      .catch((error) => {
+        console.warn("[GeoTarget Pro] App proxy failed, trying localhost fallback", error);
+        return fetchJson(localhostEndpoint.toString());
+      })
+      .then(renderPayload)
+      .catch((error) => {
+        console.warn("[GeoTarget Pro] Could not load storefront config", error);
+        if (DEBUG) {
+          const note = document.createElement("div");
+          note.style.cssText = "position:fixed;bottom:12px;left:12px;z-index:10000;background:#222;color:#fff;padding:8px 10px;border-radius:8px;font-size:12px;";
+          note.textContent = "GeoTarget Pro: data load failed. Check browser console.";
+          document.body.appendChild(note);
+          setTimeout(() => note.remove(), 7000);
+        }
+      });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "GeoTarget Pro Embed",
+  "target": "body",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "debug_mode",
+      "label": "Enable debug logs",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "dev_localhost_port",
+      "label": "Dev localhost app port",
+      "default": 3458,
+      "info": "Used only as fallback when app proxy fails in local development"
+    }
+  ]
+}
+{% endschema %}

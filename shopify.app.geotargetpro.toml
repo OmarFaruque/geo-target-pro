@@ -2,7 +2,7 @@
 
 client_id = "8450d2fe9fc657b073102d5d76fa9c4f"
 name = "GeoTargetPro"
-application_url = "https://example.com"
+application_url = "https://probe-requiring-desired-knock.trycloudflare.com"
 embedded = true
 
 [build]
@@ -16,4 +16,13 @@ api_version = "2026-04"
 scopes = "write_products"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [
+	"https://probe-requiring-desired-knock.trycloudflare.com/auth/callback",
+	"https://probe-requiring-desired-knock.trycloudflare.com/auth/shopify/callback",
+	"https://probe-requiring-desired-knock.trycloudflare.com/api/auth/callback"
+]
+
+[app_proxy]
+url = "https://probe-requiring-desired-knock.trycloudflare.com/public/geotarget"
+subpath = "geotarget-pro"
+prefix = "apps"

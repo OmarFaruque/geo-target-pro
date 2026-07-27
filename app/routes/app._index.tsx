@@ -4,29 +4,14 @@ import { useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import styles from "../styles/geotarget.module.css";
-
-type ProductOption = {
-  id: string;
-  title: string;
-};
-type AnnouncementItem = {
-  id: string;
-  message: string;
-  ctaText: string;
-  ctaUrl: string;
-};
-
-
-
-type BannerConfig = {
-  selectedTemplateId: string;
-  autoRotateMs: number;
-  announcements: AnnouncementItem[];
-  pageTargets: string[];
-  positions: string[];
-};
-
-type ProductRules = Record<string, string[]>;
+import {
+  type BannerConfig,
+  DEFAULT_BANNER_CONFIG,
+  parseBannerConfig,
+  parseProductRules,
+  type ProductOption,
+  type ProductRules,
+} from "../lib/geo-target";
 
 type FlowTabId = "placement" | "content" | "design" | "products";
 
@@ -115,25 +100,6 @@ const TEMPLATES = [
   },
 ];
 
-const DEFAULT_CONFIG: BannerConfig = {
-  selectedTemplateId: TEMPLATES[0].id,
-  autoRotateMs: 4500,
-  announcements: [
-    {id: crypto.randomUUID(),
-      message: "🔥 20% off all products!",
-      ctaText: "Shop now!",
-      ctaUrl: "/collections/all",
-    },
-    {
-      id: crypto.randomUUID(),
-      message: "🚚 Free shipping over $50",
-      ctaText: "Buy now!",
-      ctaUrl: "/collections/all",
-    },
-  ],
-  pageTargets: ["every-page"],
-  positions: ["top-page"],
-};
 
 
 
@@ -145,6 +111,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shop {
         id
         name
+        primaryDomain {
+          url
+        }
         bannerConfig: metafield(namespace: "geo_target_pro", key: "banner_config") {
           value
         }
@@ -164,27 +133,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const responseJson = await response.json();
     const shop = responseJson.data?.shop;
 
-    let bannerConfig = DEFAULT_CONFIG;
-    let productRules: ProductRules = {};
 
-    try {
-      if (shop?.bannerConfig?.value) {
-          bannerConfig = { ...DEFAULT_CONFIG, ...JSON.parse(shop.bannerConfig.value) };
-      }
-    } catch {
-      bannerConfig = DEFAULT_CONFIG;
-    }
-
-    try {
-      if (shop?.countryRules?.value) {
-        productRules = JSON.parse(shop.countryRules.value);
-      }
-    } catch {
-      productRules = {};
-    }
+    const bannerConfig = parseBannerConfig(shop?.bannerConfig?.value ?? null);
+    const productRules = parseProductRules(shop?.countryRules?.value ?? null);
 
     return {
       shopName: shop?.name ?? "Store",
+      storefrontUrl: shop?.primaryDomain?.url ?? "",
       products: (responseJson.data?.products?.nodes ?? []) as ProductOption[],
       bannerConfig,
       productRules,
@@ -272,7 +227,7 @@ export default function Index() {
   const fetcher = useFetcher<typeof action>();
   const [activeTab, setActiveTab] = useState<FlowTabId>("placement");
 
-  const [config, setConfig] = useState<BannerConfig>(loaderData.bannerConfig);
+  const [config, setConfig] = useState<BannerConfig>(loaderData.bannerConfig ?? DEFAULT_BANNER_CONFIG);
   const [rules, setRules] = useState<ProductRules>(loaderData.productRules);
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -345,6 +300,20 @@ export default function Index() {
           <div>
             <h2 className={styles.title}>Announcement campaign for {loaderData.shopName}</h2>
             <p className={styles.subtitle}> Build rotating banners with template styles and country-based product restrictions.</p>
+            <p className={styles.subtitle}>
+              Theme integration: Enable <strong>GeoTarget Pro Embed</strong> in Theme Customizer (App embeds).
+            </p>
+            <p className={styles.subtitle}>
+              This app uses Shopify App Proxy at <code>/apps/geotarget-pro</code>; no manual script tag is required.
+            </p>
+            {loaderData.storefrontUrl && (
+              <p className={styles.subtitle}>
+                Storefront preview:{" "}
+                <a href={loaderData.storefrontUrl} target="_blank" rel="noreferrer">
+                  {loaderData.storefrontUrl}
+                </a>
+              </p>
+            )}
           </div>
           <s-button variant="primary" onClick={saveSettings}>
             Save campaign
