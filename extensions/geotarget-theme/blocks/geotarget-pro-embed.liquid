@@ -125,37 +125,76 @@
       const selectors = hiddenHandles.map((handle) => 'a[href*="/products/' + handle + '"]').join(",");
       if (!selectors) return;
 
-      const hideProducts = () => {
-        document.querySelectorAll(selectors).forEach((anchor) => {
-          // Find the closest product card container
-          const card = anchor.closest("li,article,div,product-card,.card-wrapper,.grid__item");
-          if (card) {
-            card.style.display = "none";
-            return;
+      const findProductContainer = (element) => {
+        // Walk up the DOM tree to find the product card container
+        // This works automatically across different theme layouts
+        let current = element;
+        while (current && current !== document.body) {
+          // For list-based layouts (sliders, grids)
+          if (current.tagName === "LI") {
+            return current;
           }
-          // Fallback: hide the anchor itself
-          anchor.style.display = "none";
-        });
+          // For div-based layouts, check for product card indicators
+          if (current.classList.contains("slider__slide") ||
+              current.classList.contains("grid__item") ||
+              current.classList.contains("card-wrapper") ||
+              current.classList.contains("product-card-wrapper")) {
+            return current;
+          }
+          current = current.parentElement;
+        }
+        return element.parentElement;
+      };
 
-        // Additionally, hide any orphaned images that might be outside anchor tags
-        // This handles cases where product images are in separate DOM elements
-        hiddenHandles.forEach((handle) => {
-          const imageSelectors = [
-            `img[src*="${handle}"]`,
-            `img[alt*="${handle}"]`,
-            `source[srcset*="${handle}"]`,
-            `[data-product-handle="${handle}"] img`,
-          ].join(",");
-          
-          document.querySelectorAll(imageSelectors).forEach((img) => {
-            const imgContainer = img.closest("li,article,div,.card-wrapper,.grid__item,picture,figure");
-            if (imgContainer) {
-              imgContainer.style.display = "none";
-            } else {
-              img.style.display = "none";
+      const resetSliders = () => {
+        // Reset sliders to recalculate layout after products are hidden
+        // This approach works with multiple slider libraries:
+        
+        // 1. Trigger window resize event (most sliders listen to this)
+        window.dispatchEvent(new Event("resize"));
+        
+        // 2. For Splide.js sliders
+        if (window.Splide) {
+          document.querySelectorAll(".splide").forEach((splideEl) => {
+            if (splideEl.splide) {
+              splideEl.splide.refresh();
             }
           });
+        }
+        
+        // 3. For Swiper sliders
+        if (window.Swiper) {
+          document.querySelectorAll(".swiper").forEach((swiperEl) => {
+            if (swiperEl.swiper) {
+              swiperEl.swiper.update();
+            }
+          });
+        }
+        
+        // 4. For Shopify native sliders / custom implementations
+        // Dispatch custom event that sliders might listen to
+        document.querySelectorAll(".slider").forEach((sliderEl) => {
+          sliderEl.dispatchEvent(new CustomEvent("slider:update"));
         });
+        
+        // 5. Try calling common slider refresh methods if they exist
+        document.querySelectorAll("[data-slider], .product-grid.slider").forEach((el) => {
+          if (el.refresh) el.refresh();
+          if (el.update) el.update();
+          if (el.reInit) el.reInit();
+          if (el.reinit) el.reinit();
+        });
+      };
+
+      const hideProducts = () => {
+        document.querySelectorAll(selectors).forEach((anchor) => {
+          const card = findProductContainer(anchor);
+          if (card) {
+            card.style.display = "none";
+          }
+        });
+        // Reset sliders after hiding products
+        resetSliders();
       };
 
       hideProducts();
