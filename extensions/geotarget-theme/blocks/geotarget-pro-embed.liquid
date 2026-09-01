@@ -127,12 +127,34 @@
 
       const hideProducts = () => {
         document.querySelectorAll(selectors).forEach((anchor) => {
+          // Find the closest product card container
           const card = anchor.closest("li,article,div,product-card,.card-wrapper,.grid__item");
           if (card) {
             card.style.display = "none";
             return;
           }
+          // Fallback: hide the anchor itself
           anchor.style.display = "none";
+        });
+
+        // Additionally, hide any orphaned images that might be outside anchor tags
+        // This handles cases where product images are in separate DOM elements
+        hiddenHandles.forEach((handle) => {
+          const imageSelectors = [
+            `img[src*="${handle}"]`,
+            `img[alt*="${handle}"]`,
+            `source[srcset*="${handle}"]`,
+            `[data-product-handle="${handle}"] img`,
+          ].join(",");
+          
+          document.querySelectorAll(imageSelectors).forEach((img) => {
+            const imgContainer = img.closest("li,article,div,.card-wrapper,.grid__item,picture,figure");
+            if (imgContainer) {
+              imgContainer.style.display = "none";
+            } else {
+              img.style.display = "none";
+            }
+          });
         });
       };
 
