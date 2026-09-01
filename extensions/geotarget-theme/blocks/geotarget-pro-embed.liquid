@@ -148,42 +148,75 @@
 
       const resetSliders = () => {
         // Reset sliders to recalculate layout after products are hidden
-        // This approach works with multiple slider libraries:
-        
-        // 1. Trigger window resize event (most sliders listen to this)
-        window.dispatchEvent(new Event("resize"));
-        
-        // 2. For Splide.js sliders
-        if (window.Splide) {
-          document.querySelectorAll(".splide").forEach((splideEl) => {
-            if (splideEl.splide) {
-              splideEl.splide.refresh();
-            }
+        // Use a small delay to ensure DOM changes are applied before reset
+        setTimeout(() => {
+          log("Resetting sliders...");
+          
+          // 1. Trigger window resize event (most sliders listen to this)
+          window.dispatchEvent(new Event("resize"));
+          
+          // 2. For Splide.js sliders
+          if (window.Splide) {
+            document.querySelectorAll(".splide").forEach((splideEl) => {
+              if (splideEl.splide) {
+                log("Refreshing Splide slider");
+                splideEl.splide.refresh();
+              }
+            });
+          }
+          
+          // 3. For Swiper sliders
+          if (window.Swiper) {
+            document.querySelectorAll(".swiper").forEach((swiperEl) => {
+              if (swiperEl.swiper) {
+                log("Updating Swiper slider");
+                swiperEl.swiper.update();
+              }
+            });
+          }
+          
+          // 4. Shopify theme sliders - try common class names
+          const sliderSelectors = [
+            ".slider",
+            "[data-carousel]",
+            ".product-grid.slider",
+            "[data-product-carousel]",
+            ".flickity-enabled",
+            ".owl-carousel"
+          ];
+          
+          sliderSelectors.forEach((selector) => {
+            document.querySelectorAll(selector).forEach((el) => {
+              log("Attempting to reset: " + selector);
+              
+              // Try Flickity
+              if (el.flickityInstance || el.flickity) {
+                el.flickityInstance?.reposition?.();
+                el.flickity?.reposition?.();
+              }
+              
+              // Try Owl Carousel
+              if (el.owlCarousel) {
+                el.owlCarousel("refresh");
+              }
+              
+              // Try common custom methods
+              if (typeof el.refresh === "function") el.refresh();
+              if (typeof el.update === "function") el.update();
+              if (typeof el.reInit === "function") el.reInit();
+              if (typeof el.reinit === "function") el.reinit();
+              if (typeof el.rebuild === "function") el.rebuild();
+              if (typeof el.resize === "function") el.resize();
+            });
           });
-        }
-        
-        // 3. For Swiper sliders
-        if (window.Swiper) {
-          document.querySelectorAll(".swiper").forEach((swiperEl) => {
-            if (swiperEl.swiper) {
-              swiperEl.swiper.update();
-            }
+          
+          // 5. Dispatch custom event
+          document.dispatchEvent(new CustomEvent("geotarget:slider-reset"));
+          document.querySelectorAll(".slider").forEach((sliderEl) => {
+            sliderEl.dispatchEvent(new CustomEvent("slider:update"));
           });
-        }
-        
-        // 4. For Shopify native sliders / custom implementations
-        // Dispatch custom event that sliders might listen to
-        document.querySelectorAll(".slider").forEach((sliderEl) => {
-          sliderEl.dispatchEvent(new CustomEvent("slider:update"));
-        });
-        
-        // 5. Try calling common slider refresh methods if they exist
-        document.querySelectorAll("[data-slider], .product-grid.slider").forEach((el) => {
-          if (el.refresh) el.refresh();
-          if (el.update) el.update();
-          if (el.reInit) el.reInit();
-          if (el.reinit) el.reinit();
-        });
+          
+        }, 100);
       };
 
       const hideProducts = () => {

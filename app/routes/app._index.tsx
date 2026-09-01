@@ -330,6 +330,7 @@ export default function Index() {
                 ].map(([value, label]) => (
                   <label key={value} className={styles.checkboxRow}>
                     <input
+                      style={{ width: "auto" }}
                       type="checkbox"
                       checked={config.pageTargets.includes(value)}
                       onChange={() => toggleFromList("pageTargets", value)}
