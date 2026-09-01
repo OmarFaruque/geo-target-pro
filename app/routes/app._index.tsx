@@ -13,24 +13,12 @@ import {
   type ProductRules,
 } from "../lib/geo-target";
 
-type FlowTabId = "placement" | "content" | "design" | "products";
+type FlowTabId = "placement" | "content" | "design";
 
 const FLOW_TABS: Array<{ id: FlowTabId; title: string; subtitle: string }> = [
   { id: "placement", title: "Placement", subtitle: "Collections" },
   { id: "content", title: "Content", subtitle: "Selecting" },
   { id: "design", title: "Design", subtitle: "Customize style" },
-  { id: "products", title: "Products", subtitle: "Country rules" },
-];
-
-const COUNTRY_OPTIONS = [
-  { code: "US", name: "United States" },
-  { code: "CA", name: "Canada" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "AU", name: "Australia" },
-  { code: "DE", name: "Germany" },
-  { code: "FR", name: "France" },
-  { code: "IN", name: "India" },
-  { code: "JP", name: "Japan" },
 ];
 
 const TEMPLATES = [
@@ -228,12 +216,27 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState<FlowTabId>("placement");
 
   const [config, setConfig] = useState<BannerConfig>(loaderData.bannerConfig ?? DEFAULT_BANNER_CONFIG);
-  const [rules, setRules] = useState<ProductRules>(loaderData.productRules);
   const [activeSlide, setActiveSlide] = useState(0);
 
   const selectedTemplate =
     TEMPLATES.find((template) => template.id === config.selectedTemplateId) ??
     TEMPLATES[0];
+
+  const bannerBackground =
+    config.bannerStyle.transparent && config.bannerStyle.backgroundColor
+      ? `linear-gradient(90deg, ${config.bannerStyle.backgroundColor} ${config.bannerStyle.backgroundOpacity}%, rgba(255,255,255,0.08) 100%)`
+      : config.bannerStyle.backgroundGradient || selectedTemplate.background;
+
+  const bannerTextStyle = {
+    fontFamily:
+      config.bannerStyle.fontFamily === "serif"
+        ? "Georgia, serif"
+        : config.bannerStyle.fontFamily === "mono"
+          ? "'SFMono-Regular', Consolas, monospace"
+          : config.bannerStyle.fontFamily === "display"
+            ? "'Trebuchet MS', 'Segoe UI', sans-serif"
+            : "Inter, Arial, sans-serif",
+  };
 
   useEffect(() => {
 
@@ -250,35 +253,11 @@ export default function Index() {
     fetcher.submit(
       {
         config: JSON.stringify(config),
-        rules: JSON.stringify(rules),
+        rules: JSON.stringify({}),
       },
       { method: "POST" },
     );
   };
-
-  const sortedCountriesWithRules = useMemo(() => {
-    return COUNTRY_OPTIONS.map((country) => ({
-      ...country,
-      productIds: rules[country.code] ?? [],
-    }));
-  }, [rules]);
-
-  const updateCountryRule = (countryCode: string, productId: string, checked: boolean) => {
-    setRules((previous) => {
-      const existing = new Set(previous[countryCode] ?? []);
-      if (checked) {
-        existing.add(productId);
-      } else {
-        existing.delete(productId);
-      }
-
-      return {
-        ...previous,
-        [countryCode]: Array.from(existing),
-      };
-    });
-  };
-
 
   const toggleFromList = (field: "pageTargets" | "positions", value: string) => {
     setConfig((previous) => {
@@ -335,7 +314,7 @@ export default function Index() {
         ))}
       </section>
 
-      <div className={`${activeTab !== 'products' ? styles.layout : styles.fulllayout}`}>
+      <div className={styles.layout}>
         <section className={styles.leftPanel}>
           {activeTab === "placement" && (
             <>
@@ -497,105 +476,197 @@ export default function Index() {
                   </button>
                 ))}
               </div>
-            </>
-          )}
 
-          {activeTab === "products" && (
-            <>
-              <h3>Country product settings</h3>
-              <p className={styles.subtitle}>Choose which products to disable in each country.</p>
-              <div className={styles.countryRules}>
-                {sortedCountriesWithRules.map((country) => (
-                  <details className={styles.countryCard} key={country.code}>
-                    <summary>
-                      {country.name} ({country.code}) — {country.productIds.length} disabled
-                    </summary>
-                    <div className={styles.productList}>
-                      {loaderData.products.map((product) => {
-                        const isChecked = country.productIds.includes(product.id);
-                        return (
-                          <label key={`${country.code}-${product.id}`} className={styles.checkboxRow}>
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={(event) =>
-                                updateCountryRule(country.code, product.id, event.currentTarget.checked)
-                              }
-                            />
-                            <span>{product.title}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </details>
-                ))}
+              <div className={styles.card}>
+                <h4>Banner styling</h4>
+                <label>
+                  Icon
+                  <select
+                    value={config.bannerStyle.icon}
+                    onChange={(event) =>
+                      setConfig((previous) => ({
+                        ...previous,
+                        bannerStyle: { ...previous.bannerStyle, icon: event.target.value },
+                      }))
+                    }
+                  >
+                    <option value="🔥">Fire</option>
+                    <option value="⚡">Flash</option>
+                    <option value="🎉">Celebration</option>
+                    <option value="🚚">Shipping</option>
+                    <option value="💡">Idea</option>
+                    <option value="🎁">Gift</option>
+                    <option value="🏷️">Offer</option>
+                    <option value="✨">Sparkle</option>
+                  </select>
+                </label>
+                <label>
+                  Font style
+                  <select
+                    value={config.bannerStyle.fontFamily}
+                    onChange={(event) =>
+                      setConfig((previous) => ({
+                        ...previous,
+                        bannerStyle: {
+                          ...previous.bannerStyle,
+                          fontFamily: event.target.value as typeof previous.bannerStyle.fontFamily,
+                        },
+                      }))
+                    }
+                  >
+                    <option value="sans">Sans</option>
+                    <option value="serif">Serif</option>
+                    <option value="mono">Monospace</option>
+                    <option value="display">Display</option>
+                  </select>
+                </label>
+                <label>
+                  Background color
+                  <input
+                    type="color"
+                    value={config.bannerStyle.backgroundColor}
+                    onChange={(event) =>
+                      setConfig((previous) => ({
+                        ...previous,
+                        bannerStyle: {
+                          ...previous.bannerStyle,
+                          backgroundColor: event.target.value,
+                          backgroundGradient: `linear-gradient(90deg, ${event.target.value} 0%, ${event.target.value} 100%)`,
+                        },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  Gradient
+                  <input
+                    type="text"
+                    value={config.bannerStyle.backgroundGradient}
+                    onChange={(event) =>
+                      setConfig((previous) => ({
+                        ...previous,
+                        bannerStyle: { ...previous.bannerStyle, backgroundGradient: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  Transparency
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={config.bannerStyle.backgroundOpacity}
+                    onChange={(event) =>
+                      setConfig((previous) => ({
+                        ...previous,
+                        bannerStyle: {
+                          ...previous.bannerStyle,
+                          backgroundOpacity: Number(event.target.value),
+                          transparent: Number(event.target.value) < 100,
+                        },
+                      }))
+                    }
+                  />
+                  <span>{config.bannerStyle.backgroundOpacity}%</span>
+                </label>
+                <label className={styles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={config.bannerStyle.transparent}
+                    onChange={(event) =>
+                      setConfig((previous) => ({
+                        ...previous,
+                        bannerStyle: {
+                          ...previous.bannerStyle,
+                          transparent: event.target.checked,
+                          backgroundOpacity: event.target.checked ? 70 : 100,
+                        },
+                      }))
+                    }
+                  />
+                  <span>Transparent background</span>
+                </label>
+                <label className={styles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={config.bannerStyle.hideOnScroll}
+                    onChange={(event) =>
+                      setConfig((previous) => ({
+                        ...previous,
+                        bannerStyle: { ...previous.bannerStyle, hideOnScroll: event.target.checked },
+                      }))
+                    }
+                  />
+                  <span>Hide on scroll</span>
+                </label>
               </div>
             </>
           )}
         </section>
 
+        <section className={styles.rightPanel}>
+          <h3>Live preview</h3>
+          <div className={styles.previewShell}>
+            <div
+              className={styles.previewBanner}
+              style={{
+                background: bannerBackground,
+                color: selectedTemplate.textColor,
+                fontFamily: bannerTextStyle.fontFamily,
+              }}
+            >
+              <button
+                type="button"
+                className={styles.arrowBtn}
+                onClick={() =>
+                  setActiveSlide((previous) =>
+                    (previous - 1 + config.announcements.length) % config.announcements.length,
+                  )
+                }
+                aria-label="Previous slide"
+              >
+                ‹
+              </button>
+              <span className={styles.previewMessage}>
+                {config.bannerStyle.icon} {config.announcements[activeSlide]?.message}
+              </span>
+              <a
+                href={config.announcements[activeSlide]?.ctaUrl}
+                className={styles.previewCta}
+                style={{ background: selectedTemplate.ctaBg, color: selectedTemplate.ctaText }}
+              >
+                {config.announcements[activeSlide]?.ctaText}
+              </a>
+              <button
+                type="button"
+                className={styles.arrowBtn}
+                onClick={() => setActiveSlide((previous) => (previous + 1) % config.announcements.length)}
+                aria-label="Next slide"
+              >
+                ›
+              </button>
+            </div>
+          </div>
 
-
-        {activeTab !== "products" && (
-          <>
-            <section className={styles.rightPanel}>
-              <h3>Live preview</h3>
-              <div className={styles.previewShell}>
-                <div
-                  className={styles.previewBanner}
-                  style={{ background: selectedTemplate.background, color: selectedTemplate.textColor }}
-                > <button
-                    type="button"
-                    className={styles.arrowBtn}
-                    onClick={() =>
-                      setActiveSlide((previous) =>
-                        (previous - 1 + config.announcements.length) % config.announcements.length,
-                      )
-                    }
-                    aria-label="Previous slide"
-                  >
-                    ‹
-                  </button>
-                  <span className={styles.previewMessage}>{config.announcements[activeSlide]?.message}</span>
-                  <a
-                    href={config.announcements[activeSlide]?.ctaUrl}
-                    className={styles.previewCta}
-                    style={{ background: selectedTemplate.ctaBg, color: selectedTemplate.ctaText }}
-                  >
-                    {config.announcements[activeSlide]?.ctaText}
-                  </a>
-                  <button
-                    type="button"
-                    className={styles.arrowBtn}
-                    onClick={() => setActiveSlide((previous) => (previous + 1) % config.announcements.length)}
-                    aria-label="Next slide"
-                  >
-                    ›
-                  </button>
-                </div>
+          <div className={styles.previewCard}>
+            <h4>Promotion card preview</h4>
+            <p className={styles.subtitle}>Use this area for trusted badges, bundles, or coupon blocks below the main bar.</p>
+            <div className={styles.promoMock}>
+              <div>
+                <strong>Standard price</strong>
+                <p>$35.00 → $32.99</p>
               </div>
-
-              <div className={styles.previewCard}>
-                <h4>Promotion card preview</h4>
-                <p className={styles.subtitle}>Use this area for trusted badges, bundles, or coupon blocks below the main bar.</p>
-                <div className={styles.promoMock}>
-                  <div>
-                    <strong>Standard price</strong>
-                    <p>$35.00 → $32.99</p>
-                  </div>
-                  <div>
-                    <strong>Save 10%</strong>
-                    <p>$70.00 → $59.38</p>
-                  </div>
-                </div>
+              <div>
+                <strong>Save 10%</strong>
+                <p>$70.00 → $59.38</p>
               </div>
+            </div>
+          </div>
 
-              {fetcher.data?.ok && <p className={styles.success}>Saved successfully.</p>}
-              {fetcher.data?.error && <p className={styles.error}>{fetcher.data.error}</p>}
-            </section>
-                  
-          </>
-        )}
+          {fetcher.data?.ok && <p className={styles.success}>Saved successfully.</p>}
+          {fetcher.data?.error && <p className={styles.error}>{fetcher.data.error}</p>}
+        </section>
       </div>
     </s-page>
   );

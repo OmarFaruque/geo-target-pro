@@ -10,12 +10,23 @@ export type AnnouncementItem = {
   ctaUrl: string;
 };
 
+export type BannerStyleConfig = {
+  icon: string;
+  fontFamily: "sans" | "serif" | "mono" | "display";
+  backgroundColor: string;
+  backgroundGradient: string;
+  backgroundOpacity: number;
+  transparent: boolean;
+  hideOnScroll: boolean;
+};
+
 export type BannerConfig = {
   selectedTemplateId: string;
   autoRotateMs: number;
   announcements: AnnouncementItem[];
   pageTargets: string[];
   positions: string[];
+  bannerStyle: BannerStyleConfig;
 };
 
 export type ProductRules = Record<string, string[]>;
@@ -90,6 +101,15 @@ export const DEFAULT_BANNER_CONFIG: BannerConfig = {
   ],
   pageTargets: ["every-page"],
   positions: ["top-page"],
+  bannerStyle: {
+    icon: "🔥",
+    fontFamily: "sans",
+    backgroundColor: "#350000",
+    backgroundGradient: "linear-gradient(90deg, #350000 0%, #4d0101 100%)",
+    backgroundOpacity: 100,
+    transparent: false,
+    hideOnScroll: false,
+  },
 };
 
 export function parseBannerConfig(value: string | undefined | null): BannerConfig {
@@ -99,6 +119,11 @@ export function parseBannerConfig(value: string | undefined | null): BannerConfi
 
   try {
     const parsed = JSON.parse(value);
+    const bannerStyle = {
+      ...DEFAULT_BANNER_CONFIG.bannerStyle,
+      ...(parsed.bannerStyle ?? {}),
+    };
+
     return {
       ...DEFAULT_BANNER_CONFIG,
       ...parsed,
@@ -107,6 +132,10 @@ export function parseBannerConfig(value: string | undefined | null): BannerConfi
         : DEFAULT_BANNER_CONFIG.announcements,
       pageTargets: Array.isArray(parsed.pageTargets) ? parsed.pageTargets : DEFAULT_BANNER_CONFIG.pageTargets,
       positions: Array.isArray(parsed.positions) ? parsed.positions : DEFAULT_BANNER_CONFIG.positions,
+      bannerStyle: {
+        ...DEFAULT_BANNER_CONFIG.bannerStyle,
+        ...bannerStyle,
+      },
     };
   } catch {
     return DEFAULT_BANNER_CONFIG;

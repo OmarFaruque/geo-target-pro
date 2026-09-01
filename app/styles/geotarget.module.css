@@ -246,6 +246,215 @@
   font-weight: 600;
 }
 
+.productSettingsPage {
+  display: grid;
+  gap: 20px;
+}
+
+.productSettingsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+.productSettingsHeader h3 {
+  margin: 4px 0 0;
+  font-size: 1.5rem;
+}
+
+.productEyebrow {
+  margin: 0;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.productSettingsBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.addCountryPanel {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+.addCountryRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.countrySelect,
+.card input,
+.leftPanel input {
+  width: calc(100% - 16px);
+  margin-top: 0px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  font: inherit;
+}
+
+.countrySelect {
+  flex: 1;
+  min-width: 210px;
+}
+
+.primaryAction,
+.removeCountryButton {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryAction {
+  background: linear-gradient(135deg, #111827 0%, #374151 100%);
+  color: white;
+}
+
+.primaryAction:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.countryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.countryCard {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.countryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.countryTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.countryTitleWrap h4 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.countryCode {
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.countryMeta {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.removeCountryButton {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.productGrid {
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.productLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.productLabel input {
+  width: auto;
+  margin: 0;
+  accent-color: #111827;
+}
+
+.productLabel span {
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.emptyState {
+  border: 1px dashed #d1d5db;
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 20px;
+  color: #4b5563;
+  text-align: center;
+}
+
+.productSuccess {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+
+.productError {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+
 @media (max-width: 1200px) {
   .topTabs {
     grid-template-columns: 1fr 1fr;

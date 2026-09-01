@@ -34,8 +34,8 @@ function buildScript(requestUrl: URL) {
       if (announcements.length > 0 && positions.includes("top-page")) {
         const host = document.createElement("div");
         host.id = "geo-target-pro-banner";
-        host.style.cssText = "position:relative;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;z-index:9998;font-family:inherit;" +
-          "background:" + (style.background || "#111") + ";color:" + (style.textColor || "#fff") + ";";
+        host.style.cssText = "position:relative;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;z-index:9998;" +
+          "background:" + (style.background || "#111") + ";color:" + (style.textColor || "#fff") + ";font-family:" + (style.fontFamily || "inherit") + ";";
 
         const message = document.createElement("span");
         message.style.fontSize = "14px";
@@ -47,7 +47,8 @@ function buildScript(requestUrl: URL) {
 
         const applySlide = (index) => {
           const slide = announcements[index % announcements.length];
-          message.textContent = slide?.message || "";
+          const icon = style.icon || "";
+          message.textContent = (icon ? icon + " " : "") + (slide?.message || "");
           cta.textContent = slide?.ctaText || "Shop now";
           cta.href = slide?.ctaUrl || "/collections/all";
         };
@@ -56,6 +57,16 @@ function buildScript(requestUrl: URL) {
         host.appendChild(message);
         host.appendChild(cta);
         document.body.insertBefore(host, document.body.firstChild);
+
+        if (style.hideOnScroll) {
+          let lastScrollY = window.scrollY;
+          const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            host.style.display = currentScrollY > lastScrollY ? "none" : "flex";
+            lastScrollY = currentScrollY;
+          };
+          window.addEventListener("scroll", handleScroll, { passive: true });
+        }
 
         if (announcements.length > 1) {
           let active = 0;
@@ -75,12 +86,33 @@ function buildScript(requestUrl: URL) {
 
       const hideProducts = () => {
         document.querySelectorAll(selectors).forEach((anchor) => {
-          const card = anchor.closest('li,article,div,product-card,.card-wrapper,.grid__item');
+          const card = anchor.closest([
+            'li',
+            'article',
+            '.product-card',
+            '.ProductCard',
+            '.card-wrapper',
+            '.grid__item',
+            '.product-item',
+            '.product',
+            '[data-product-handle]'
+          ].join(','));
+
+          const hideNode = (node) => {
+            if (!node) return;
+            node.style.display = 'none';
+            node.style.visibility = 'hidden';
+            node.setAttribute('aria-hidden', 'true');
+          };
+
           if (card) {
-            card.style.display = 'none';
+            hideNode(card);
+            card.querySelectorAll('img,picture,figure,video,a').forEach(hideNode);
             return;
           }
-          anchor.style.display = 'none';
+
+          hideNode(anchor);
+          anchor.closest('img,picture,figure,video') && hideNode(anchor.closest('img,picture,figure,video'));
         });
       };
 

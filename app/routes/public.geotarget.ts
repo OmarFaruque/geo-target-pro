@@ -64,13 +64,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const templateStyle =
       TEMPLATE_STYLE_MAP[bannerConfig.selectedTemplateId as keyof typeof TEMPLATE_STYLE_MAP] ?? TEMPLATE_STYLE_MAP["hero-maroon"];
 
+    const style = {
+      ...templateStyle,
+      ...bannerConfig.bannerStyle,
+      background:
+        bannerConfig.bannerStyle?.backgroundGradient || templateStyle.background,
+      textColor: templateStyle.textColor,
+      fontFamily: bannerConfig.bannerStyle?.fontFamily === "serif"
+        ? "Georgia, serif"
+        : bannerConfig.bannerStyle?.fontFamily === "mono"
+          ? "'SFMono-Regular', Consolas, monospace"
+          : bannerConfig.bannerStyle?.fontFamily === "display"
+            ? "'Trebuchet MS', 'Segoe UI', sans-serif"
+            : "Inter, Arial, sans-serif",
+    };
+
     return Response.json(
       {
         shop,
         country,
         banner: {
           ...bannerConfig,
-          style: templateStyle,
+          style,
         },
         hiddenProducts: {
           ids: hiddenProductIds,
